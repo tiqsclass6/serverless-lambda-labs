@@ -16,7 +16,7 @@ data "archive_file" "lambda_node_zip" {
 resource "aws_lambda_function" "chewbacca_python" {
   function_name = "chewbacca-python-lambda"
   description   = "Chewbacca Python Lambda Function"
-  runtime       = "python3.12"
+  runtime       = "python3.14"
   handler       = "lambda_function.lambda_handler"
   role          = aws_iam_role.lambda_execution_role.arn
 
@@ -40,7 +40,7 @@ resource "aws_lambda_function" "chewbacca_python" {
 resource "aws_lambda_function" "chewbacca_node" {
   function_name = "chewbacca-node-lambda"
   description   = "Chewbacca Node.js Lambda Function"
-  runtime       = "nodejs22.x"
+  runtime       = "nodejs24.x"
   handler       = "index.handler"
   role          = aws_iam_role.lambda_execution_role.arn
 
