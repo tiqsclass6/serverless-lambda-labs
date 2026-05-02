@@ -1,3 +1,4 @@
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/archive_file
 # Archive the Lambda function code for Python
 data "archive_file" "lambda_python_zip" {
   type        = "zip"
@@ -12,6 +13,7 @@ data "archive_file" "lambda_node_zip" {
   output_path = "${path.module}/lambda/node/lambda_node.zip"
 }
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function
 # Chewbacca Python Lambda Function
 resource "aws_lambda_function" "chewbacca_python" {
   function_name = "chewbacca-python-lambda"

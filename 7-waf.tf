@@ -1,3 +1,4 @@
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/wafv2_web_acl
 # WAF configuration for Chewbacca REST API Gateway Lab
 resource "aws_wafv2_web_acl" "chewbacca_api_waf" {
   name        = "chewbacca-api-waf"
@@ -8,7 +9,7 @@ resource "aws_wafv2_web_acl" "chewbacca_api_waf" {
     allow {}
   }
 
-  # Add AWS Managed Rules for common protections
+  # Add AWS Managed Rules for Common Rule Set
   rule {
     name     = "AWSManagedRulesCommonRuleSet"
     priority = 1
@@ -67,6 +68,7 @@ resource "aws_wafv2_web_acl" "chewbacca_api_waf" {
   }
 }
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/wafv2_web_acl_association
 # Associate the WAF with the API Gateway stage
 resource "aws_wafv2_web_acl_association" "api_gateway_waf" {
   web_acl_arn  = aws_wafv2_web_acl.chewbacca_api_waf.arn

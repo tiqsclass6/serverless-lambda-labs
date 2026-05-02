@@ -1,3 +1,4 @@
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role
 # IAM Role for Lambda Execution
 resource "aws_iam_role" "lambda_execution_role" {
   name = "lambda-execution-role"
@@ -14,6 +15,7 @@ resource "aws_iam_role" "lambda_execution_role" {
   })
 }
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment
 # Lambda Basic Execution Policy Attachment
 resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
   role       = aws_iam_role.lambda_execution_role.name

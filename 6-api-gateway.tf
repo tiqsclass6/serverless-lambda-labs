@@ -1,3 +1,4 @@
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_rest_api
 resource "aws_api_gateway_rest_api" "chewbacca_rest_api" {
   name        = "chewbacca-rest-api"
   description = "REST API for Chewbacca Lambda Lab with WAF"
@@ -12,6 +13,7 @@ resource "aws_api_gateway_rest_api" "chewbacca_rest_api" {
   }
 }
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_resource
 # Routes and Integrations will be defined in the next steps
 resource "aws_api_gateway_resource" "python" {
   rest_api_id = aws_api_gateway_rest_api.chewbacca_rest_api.id
@@ -25,21 +27,13 @@ resource "aws_api_gateway_resource" "node" {
   path_part   = "node"
 }
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_method
 # Python Method + Integration
 resource "aws_api_gateway_method" "python_get" {
   rest_api_id   = aws_api_gateway_rest_api.chewbacca_rest_api.id
   resource_id   = aws_api_gateway_resource.python.id
   http_method   = "GET"
   authorization = "NONE"
-}
-
-resource "aws_api_gateway_integration" "python_lambda" {
-  rest_api_id             = aws_api_gateway_rest_api.chewbacca_rest_api.id
-  resource_id             = aws_api_gateway_resource.python.id
-  http_method             = aws_api_gateway_method.python_get.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.chewbacca_python.invoke_arn
 }
 
 # Node.js Method + Integration
@@ -50,6 +44,18 @@ resource "aws_api_gateway_method" "node_get" {
   authorization = "NONE"
 }
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_integration
+# Python Method + Integration
+resource "aws_api_gateway_integration" "python_lambda" {
+  rest_api_id             = aws_api_gateway_rest_api.chewbacca_rest_api.id
+  resource_id             = aws_api_gateway_resource.python.id
+  http_method             = aws_api_gateway_method.python_get.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.chewbacca_python.invoke_arn
+}
+
+# Node.js Method + Integration
 resource "aws_api_gateway_integration" "node_lambda" {
   rest_api_id             = aws_api_gateway_rest_api.chewbacca_rest_api.id
   resource_id             = aws_api_gateway_resource.node.id
@@ -59,6 +65,7 @@ resource "aws_api_gateway_integration" "node_lambda" {
   uri                     = aws_lambda_function.chewbacca_node.invoke_arn
 }
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_permission
 # Lambda Permissions for API Gateway
 resource "aws_lambda_permission" "allow_apigw_python" {
   statement_id  = "AllowAPIGatewayInvoke"
@@ -76,6 +83,7 @@ resource "aws_lambda_permission" "allow_apigw_node" {
   source_arn    = "${aws_api_gateway_rest_api.chewbacca_rest_api.execution_arn}/*/*"
 }
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_deployment
 # Prod Deployment
 resource "aws_api_gateway_deployment" "prod" {
   rest_api_id = aws_api_gateway_rest_api.chewbacca_rest_api.id
@@ -96,6 +104,7 @@ resource "aws_api_gateway_deployment" "prod" {
   }
 }
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_stage
 # Prod Stage
 resource "aws_api_gateway_stage" "prod" {
   stage_name    = "prod"
