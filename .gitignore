@@ -51,5 +51,5 @@ terraform.rc
 *.rpm
 rpm_packages/
 *.zip
-
+*.mp4
 venv/

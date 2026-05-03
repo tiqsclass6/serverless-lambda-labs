@@ -39,9 +39,11 @@ It showcases how modern cloud teams can protect APIs at the edge, automate deplo
 - [**Security Controls**](#️-security-controls)
 - [**Observability**](#-observability)
 - [**Cost Optimization**](#-cost-optimization)
+- [**References**](#-references)
 - [**Troubleshooting**](#-troubleshooting)
 - [**Teardown**](#-teardown)
 - [**Lessons Learned**](#-lessons-learned)
+- [**Author**](#-author)
 - [**Portfolio Value**](#-portfolio-value)
 
 ---
@@ -85,6 +87,9 @@ This architecture reflects real enterprise patterns:
 lesson-b/
 ├── deliverables/
 │   ├── aws-waf-api-gateway.log
+│   ├── be-a-man-challenge.log
+│   ├── chewbacca-node-lambda.log
+│   ├── chewbacca-python-lambda.log
 │   ├── deliverable1.jpg
 │   ├── deliverable2.jpg
 │   ├── deliverable3.jpg
@@ -117,7 +122,8 @@ lesson-b/
 ├── 5-cloudwatch.tf
 ├── 6-apigateway.tf
 ├── 7-waf.tf
-├── 8-outputs.tf
+├── 8-jwt.tf
+├── 9-outputs.tf
 └── README.md
 ```
 
@@ -125,14 +131,14 @@ lesson-b/
 
 ## 🚀 **Deployment Guide**
 
-## Prerequisites
+### **Prerequisites**
 
 - Terraform ≥ 1.10
 - AWS CLI configured
 - IAM permissions
 - Git / Terminal
 
-## Deploy
+### **Deploy**
 
 ```bash
 terraform init
@@ -150,29 +156,65 @@ terraform apply
 
 ## 🧪 **Validation Tests**
 
-### **Test Python Endpoint**
+### **Test Python and Node Endpoints**
 
 ```bash
-curl "https://<api-id>.execute-api.<region>.amazonaws.com/prod/python?name=Chewbacca"
-curl "https://<api-id>.execute-api.<region>.amazonaws.com/prod/python?name=Malgus"
+curl -k -v "https://<api-id>.execute-api.<region>.amazonaws.com/prod/python?name=Chewbacca"
+curl -k -v "https://<api-id>.execute-api.<region>.amazonaws.com/prod/node?name=Malgus"
 ```
 
 ![deliverable1.jpg](/deliverables/deliverable1.jpg)
 
-### **Test Node Endpoint and WAF XXS Blocking**
+### **Test WAF XXS and Local File Inclusion (LFI) Blocking**
 
 ```bash
-curl "https://<api-id>.execute-api.<region>.amazonaws.com/prod/node?name=Malgus"
-curl "https://<api-id>.execute-api.<region>.amazonaws.com/prod/python?name=%3Cscript%3Ealert(1)%3C/script%3E"
+curl -k -v "https://<api-id>.execute-api.<region>.amazonaws.com/prod/python?name=%3Cscript%3Ealert(1)%3C/script%3E"
+curl -k -v -H "User-Agent: Test-Client" "https://<api-id>.execute-api.<region>.amazonaws.com/prod/python?file=../../../bin/bash"
 ```
 
 ![deliverable2.jpg](/deliverables/deliverable2.jpg)
 
+### **Be A Man Challenge**
+
+- **BAM Challenge Demo**
+
+  <https://github.com/user-attachments/assets/428b40c4-baac-49fb-bc0d-4e896f489e13>
+
+- **Overview:**
+  - The command below simulates a Local File Inclusion (LFI) attack by attempting to access the `/bin/bash` file on the server.
+  - This is a common technique used by attackers to exploit vulnerabilities in web applications.
+  - The AWS WAF should detect and block this malicious request, resulting in a `403 Forbidden` response.
+
+- **Breakdown of the Command**
+
+    ```bash
+    curl -k -v -H "User-Agent: Test-Client" "https://<api-id>.execute-api.<region>.amazonaws.com/prod/python?file=../../../bin/bash"
+    ```
+
+  - **`curl`**: Command-line tool used to transfer data to and from a server.
+  - **`-k`**: Instructs curl to skip SSL/TLS certificate verification (useful in some testing environments).
+  - **`-v`**: Enables verbose mode, displaying detailed request and response headers for full visibility.
+  - **`-H "User-Agent: Test-Client"`**: Adds a custom User-Agent header to simulate a client request.
+  - **`URL`**: Targets your API Gateway endpoint with a malicious query parameter: ?file=../../../bin/bash.
+
+- **How This Applies to the AWS WAF**
+  - This command deliberately sends a LFI / Path Traversal payload via the query string.
+  - The sequence `../../../bin/bash` attempts to navigate up directories to access sensitive system files (a common attack technique).
+
+- **WAF Behavior and Actions**
+  - **AWS WAF** inspects incoming requests before they reach the API Gateway prodstage or Lambda function.
+  - The `AWSManagedRulesCommonRuleSet` contain signatures that detect patterns associated with path traversal and LFI attacks.
+  - Upon matching the malicious pattern in the query argument, the WAF applies the configured action — in this case, `Block`.
+  - This results in the observed `HTTP/1.1 403 Forbidden` detailed response, preventing the request from proceeding further.
+
+- **Conclusion**
+  - This challenge demonstrates that the WAF is functioning as an effective security control at the edge, blocking potentially harmful requests and protecting backend resources.
+  - It serves as a clear, reproducible example distinct from SQL injection or XSS in the lab deliverables.
+
 ### **Test WAF Rate Limiting**
 
 ```bash
-for i in {1..150}; do curl -s https://<api-id>.execute-api.<region>.amazonaws.com/prod/node"
-done
+for i in {1..150}; do curl -k https://<api-id>.execute-api.<region>.amazonaws.com/prod/node"; done
 ```
 
 ![deliverable3.jpg](/deliverables/deliverable3.jpg)
@@ -181,7 +223,6 @@ done
 
 ```text
 https://<api-id>.execute-api.<region>.amazonaws.com/prod/python?name=Chewbacca
-https://<api-id>.execute-api.<region>.amazonaws.com/prod/python?name=Malgus
 https://<api-id>.execute-api.<region>.amazonaws.com/prod/node?name=Malgus
 ```
 
@@ -189,6 +230,7 @@ https://<api-id>.execute-api.<region>.amazonaws.com/prod/node?name=Malgus
 
 ### **CloudWatch Logs**
 
+- [**Be A Man Challenge Logs**](/deliverables/be-a-man-challenge.log)
 - [**WAF Logs**](/deliverables/aws-waf-api-gateway.log)
 - [**Lambda Node Logs**](/deliverables/chewbacca-node-lambda.log)
 - [**Lambda Python Logs**](/deliverables/chewbacca-python-lambda.log)
@@ -247,6 +289,19 @@ CloudWatch Log Groups:
 
 ---
 
+## 📚 References
+
+1. [**Terraform AWS Provider Documentation**](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)  
+2. [**AWS Lambda Node.js Handler Guide**](https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html)  
+3. [**AWS Lambda Python Handler Guide**](https://docs.aws.amazon.com/lambda/latest/dg/python-handler.html)  
+4. [**AWS Lambda Execution Role Guide**](https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html)  
+5. [**Amazon API Gateway REST API Guide**](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-rest-api.html)  
+6. [**Control Access to API Gateway with AWS WAF**](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-control-access-aws-waf.html)  
+7. [**AWS Managed Rule Groups Baseline Protections**](https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-baseline.html)  
+8. [**Amazon CloudWatch User Guide**](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html)  
+
+---
+
 ## 🧯 **Troubleshooting**
 
 | **Symptom**     | **Likely Cause**            | **Resolution**            |
@@ -262,7 +317,7 @@ CloudWatch Log Groups:
 ## 💣 **Teardown**
 
 ```bash
-terraform destroy -auto-approve
+terraform destroy
 ```
 
 ![terraform-destroy.jpg](/images/terraform-destroy.jpg)
@@ -304,9 +359,3 @@ This project demonstrates production-level experience in:
 - Production-minded Design
 
 ---
-
-## 🏁 Final Statement
-
-This repository reflects the mindset of a modern DevOps / Platform Engineer:
-
-> Build secure systems, automate everything, observe everything, and make operations repeatable.
