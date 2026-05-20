@@ -91,10 +91,10 @@ resource "aws_api_gateway_deployment" "prod" {
   triggers = {
     redeployment = sha1(jsonencode([
       aws_api_gateway_resource.python.id,
-      aws_api_gateway_method.python_get.id,
-      aws_api_gateway_integration.python_lambda.id,
       aws_api_gateway_resource.node.id,
+      aws_api_gateway_method.python_get.id,
       aws_api_gateway_method.node_get.id,
+      aws_api_gateway_integration.python_lambda.id,
       aws_api_gateway_integration.node_lambda.id,
     ]))
   }

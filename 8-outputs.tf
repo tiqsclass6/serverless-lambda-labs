@@ -4,24 +4,6 @@ output "api_gateway_base_url" {
   value       = "https://${aws_api_gateway_rest_api.chewbacca_rest_api.id}.execute-api.${var.aws_region}.amazonaws.com/prod"
 }
 
-# JWT Authorizer Output
-# output "jwt_authorizer_id" {
-#   description = "JWT Authorizer ID"
-#   value       = aws_api_gateway_authorizer.jwt_auth.id
-# }
-
-# Protected Python URL (requires JWT)
-# output "protected_python_url" {
-#   description = "Protected Python Endpoint (requires JWT)"
-#   value       = "https://${aws_api_gateway_rest_api.chewbacca_rest_api.id}.execute-api.${var.aws_region}.amazonaws.com/prod/python"
-# }
-
-# Protected Node.js URL (requires JWT)
-# output "protected_node_url" {
-#   description = "Protected Node.js Endpoint (requires JWT)"
-#   value       = "https://${aws_api_gateway_rest_api.chewbacca_rest_api.id}.execute-api.${var.aws_region}.amazonaws.com/prod/node"
-# }
-
 # Node.js Curl Command Output
 output "node_curl" {
   description = "Copy & Paste curl command for Node.js"
